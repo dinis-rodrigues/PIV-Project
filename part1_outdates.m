@@ -1,11 +1,15 @@
 
-function [H, world_pts_x, world_pts_y] = ready_piv(image_list, match_list, K, pointsw)
-
+function [H, world_pts_x, world_pts_y] = part1(image_list, match_list, K, pointsw)
+clear all
 close all
-warning('off','all')
 
-for i=1:length(image_list)
-    img_list{i} = imread(image_list{i});
+% imagepath='/home/dinis/Desktop/Cadeiras/PIV/Dinis/Project/datasets/4/';
+imagepath='/home/dinis/Desktop/Cadeiras/PIV/Dinis/Project/examples/sintetico/';
+files = dir(imagepath);
+imagelist = files(3:end);
+
+for i=1:length(imagelist)
+    img_list{i} = imread(fullfile(imagepath, imagelist(i).name));
 end
 
 % Initialize all the transforms to the identity matrix. 
@@ -18,7 +22,7 @@ imageSize = zeros(numImages,2);
 % Iterate over remaining image pairs
 for i = 1:numImages
     % Read the first image from the image set.
-    I = img_list{i};
+    I = imread(fullfile(imagepath, imagelist(i).name));
 
     % Initialize features for I(1)
     grayImage = rgb2gray(I);
@@ -36,11 +40,13 @@ for i = 1:numImages
         % If i = j, it's equal to the identity matrix
         if i ~= j
             % Read I(j).
-            I = img_list{j};
+            I = imread(fullfile(imagepath, imagelist(j).name));
 
             % Convert image to grayscale.
             grayImage = rgb2gray(I);    
 
+            % Save image size.
+            imageSize(i,:) = size(grayImage);
 
             % Detect and extract SURF/SIFT features for I(j).
             points = detectSURFFeatures(grayImage);    
@@ -107,7 +113,7 @@ panoramaView = imref2d([height width], xLimits, yLimits);
 % Create the panorama.
 for i = 1:numImages
     
-    I = img_list{i};   
+    I = imread(fullfile(imagepath, imagelist(i).name));   
    
     % Transform I into the panorama.
     warpedImage = imwarp(I, tform_best(i), 'OutputView', panoramaView);
@@ -121,6 +127,7 @@ end
 
 figure
 imshow(panorama)
+grid on
 
 % Save the Homographies into the wanted variable
 for i=1:length(tforms)
